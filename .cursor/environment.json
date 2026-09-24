@@ -1,0 +1,11 @@
+{
+  "name": "portfolio-builder",
+  "install": "pnpm install && pnpm --filter @portfolio/shared build",
+  "start": "docker compose up -d",
+  "terminals": [
+    {
+      "name": "api",
+      "command": "cp -n .env.example .env 2>/dev/null || true; pnpm migration:run; pnpm --filter @portfolio/api dev"
+    }
+  ]
+}
