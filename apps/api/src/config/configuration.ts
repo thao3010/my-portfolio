@@ -7,6 +7,7 @@ export default () => ({
     password: process.env.DATABASE_PASSWORD ?? 'portfolio',
     name: process.env.DATABASE_NAME ?? 'portfolio',
   },
+  publicBaseUrl: process.env.API_PUBLIC_URL ?? 'http://localhost:3847',
   jwt: {
     accessSecret:
       process.env.JWT_ACCESS_SECRET ??

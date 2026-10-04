@@ -1,4 +1,10 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import { BEARER_SCHEME } from '../setup-swagger';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { LoginDto } from './dto/login.dto';
@@ -8,6 +14,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UsersService } from '../users/users.service';
 import type { JwtPayload } from './types/jwt-payload';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -16,6 +23,7 @@ export class AuthController {
   ) {}
 
   @Post('register')
+  @ApiOperation({ summary: 'Register a new user and receive tokens' })
   async register(@Body() dto: RegisterDto) {
     const { user, tokens } = await this.authService.register(dto);
     return {
@@ -25,6 +33,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @ApiOperation({ summary: 'Login with email and password' })
   async login(@Body() dto: LoginDto) {
     const { user, tokens } = await this.authService.login(dto);
     return {
@@ -34,12 +43,15 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @ApiOperation({ summary: 'Rotate tokens using a refresh token' })
   async refresh(@Body() dto: RefreshTokenDto) {
     return this.authService.refreshWithToken(dto.refreshToken);
   }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth(BEARER_SCHEME)
+  @ApiOperation({ summary: 'Invalidate refresh token for current user' })
   async logout(@CurrentUser() user: JwtPayload) {
     await this.authService.logout(user.sub);
     return { success: true };
@@ -47,6 +59,8 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth(BEARER_SCHEME)
+  @ApiOperation({ summary: 'Current authenticated user profile' })
   async me(@CurrentUser() user: JwtPayload) {
     const full = await this.usersService.getByIdOrFail(user.sub);
     return this.authService.sanitizeUser(full);

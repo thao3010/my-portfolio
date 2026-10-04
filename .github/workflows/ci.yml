@@ -35,3 +35,9 @@ jobs:
 
       - name: Build API
         run: pnpm --filter @portfolio/api build
+
+      - name: Build CMS
+        run: pnpm --filter @portfolio/cms build
+
+      - name: Build Web
+        run: pnpm --filter @portfolio/web build

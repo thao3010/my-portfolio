@@ -76,4 +76,24 @@ export class UsersService {
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
+
+  async listAll(): Promise<User[]> {
+    return this.usersRepository.find({
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async updateAdminFields(
+    id: string,
+    fields: { role?: UserRole; isActive?: boolean },
+  ): Promise<User> {
+    const user = await this.getByIdOrFail(id);
+    if (fields.role !== undefined) {
+      user.role = fields.role;
+    }
+    if (fields.isActive !== undefined) {
+      user.isActive = fields.isActive;
+    }
+    return this.usersRepository.save(user);
+  }
 }

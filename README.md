@@ -9,6 +9,8 @@ Self-hosted portfolio platform: NestJS API, CMS (Vite), public site (Next.js), m
 | Path | Purpose |
 |------|---------|
 | `apps/api` | REST API (NestJS + TypeORM + PostgreSQL) |
+| `apps/cms` | Admin CMS (Vite + React) — login, register, dashboard |
+| `apps/web` | Public site (Next.js) — `/{locale}/{username}` routes |
 | `packages/shared` | Shared constants (`UserRole`, locales, username rules) |
 | `docker-compose.yml` | PostgreSQL + MinIO for local dev |
 | `docs/public-urls.md` | Contract for `/{locale}/{username}` public URLs |
@@ -22,15 +24,32 @@ Self-hosted portfolio platform: NestJS API, CMS (Vite), public site (Next.js), m
 ## Quick start
 
 ```bash
-cp .env.example .env
+cp .env.example .env   # Windows: copy .env.example .env
 pnpm install
-pnpm db:up
-pnpm --filter @portfolio/shared build
+pnpm db:up             # Postgres only (enough for API/CMS/Web). MinIO: pnpm db:up:all
 pnpm migration:run
-pnpm --filter @portfolio/api dev
+pnpm dev:stack         # API + CMS + Web in one terminal (Turbo)
 ```
 
-API: `http://localhost:3847/api/v1/health`
+After pulling new API changes, run `pnpm migration:run` again if new migrations were added.
+
+**Or three terminals** (same order):
+
+```bash
+pnpm --filter @portfolio/shared build
+pnpm --filter @portfolio/api dev
+pnpm --filter @portfolio/cms dev
+pnpm --filter @portfolio/web dev
+```
+
+Optional: copy `apps/cms/.env.example` → `apps/cms/.env` and `apps/web/.env.example` → `apps/web/.env`.
+
+| App | URL |
+|-----|-----|
+| API | `http://localhost:3847/api/v1/health` |
+| Swagger UI | `http://localhost:3847/api/docs` |
+| CMS | `http://localhost:5173` |
+| Web | `http://localhost:3000` |
 
 ### Auth endpoints (M1)
 
@@ -41,6 +60,9 @@ API: `http://localhost:3847/api/v1/health`
 | POST | `/api/v1/auth/refresh` | Body: `{ "refreshToken" }` |
 | POST | `/api/v1/auth/logout` | Bearer access token |
 | GET | `/api/v1/auth/me` | Bearer access token |
+| GET/PUT | `/api/v1/me/portfolio` | User portfolio editor (JWT) |
+| GET | `/api/v1/public/portfolios/:username` | Published portfolio (public) |
+| GET/PATCH | `/api/v1/admin/users` | Admin user management |
 
 ### Create an admin (manual, until admin CMS exists)
 
@@ -52,7 +74,8 @@ UPDATE users SET role = 'admin' WHERE email = 'you@example.com';
 
 | Command | Description |
 |---------|-------------|
-| `pnpm dev` | Turbo dev (API when configured) |
+| `pnpm dev` | Turbo dev (all packages with a `dev` script) |
+| `pnpm dev:stack` | Build shared, then API + CMS + Web together |
 | `pnpm build` | Build all packages |
 | `pnpm test` | Run tests |
 | `pnpm db:up` / `pnpm db:down` | Docker services |

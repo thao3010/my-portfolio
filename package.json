@@ -4,11 +4,13 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:stack": "pnpm --filter @portfolio/shared build && turbo run dev --filter=@portfolio/api --filter=@portfolio/cms --filter=@portfolio/web",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
-    "db:up": "docker compose up -d",
-    "db:down": "docker compose down",
+    "db:up": "docker compose up -d postgres",
+    "db:up:all": "docker compose --profile storage up -d",
+    "db:down": "docker compose --profile storage down",
     "migration:run": "pnpm --filter @portfolio/api migration:run",
     "migration:generate": "pnpm --filter @portfolio/api migration:generate"
   },

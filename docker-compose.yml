@@ -1,10 +1,10 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16
     container_name: portfolio-postgres
     restart: unless-stopped
     ports:
-      - '5433:5432'
+      - '5432:5432'
     environment:
       POSTGRES_USER: portfolio
       POSTGRES_PASSWORD: portfolio
@@ -18,7 +18,8 @@ services:
       retries: 5
 
   minio:
-    image: minio/minio:latest
+    profiles: ['storage']
+    image: quay.io/minio/minio:RELEASE.2024-11-07T00-52-20Z
     container_name: portfolio-minio
     restart: unless-stopped
     ports:
