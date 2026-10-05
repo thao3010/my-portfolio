@@ -22,12 +22,7 @@ import {
   SurfaceLayoutEditor,
   type LayoutLibrary,
 } from '../components/SurfaceLayoutEditor';
-import {
-  Form,
-  RhfCheckbox,
-  RhfInput,
-  RhfRichText,
-} from '../components/form';
+import { Form, RhfInput, RhfRichText } from '../components/form';
 import { Button } from '../components/ui/Button';
 import {
   portfolioFormSchema,
@@ -78,6 +73,7 @@ export function PortfolioEditorPage() {
   const [createLayoutTarget, setCreateLayoutTarget] = useState<
     'portfolio' | 'cv'
   >('portfolio');
+  const [publishing, setPublishing] = useState(false);
 
   const form = useForm<PortfolioFormValues>({
     resolver: zodResolver(portfolioFormSchema),
@@ -88,6 +84,7 @@ export function PortfolioEditorPage() {
       isPublished: false,
     },
   });
+  const isPublished = form.watch('isPublished');
 
   const loadAll = useCallback(async () => {
     const tokens = loadTokens();
@@ -209,6 +206,27 @@ export function PortfolioEditorPage() {
     }
   }
 
+  async function togglePublish() {
+    const tokens = loadTokens();
+    if (!tokens) {
+      return;
+    }
+    const next = !form.getValues('isPublished');
+    setPublishing(true);
+    clearFeedback();
+    setLayoutError(null);
+    setLayoutMessage(null);
+    try {
+      await api.saveMyPortfolio(tokens.accessToken, { isPublished: next });
+      form.setValue('isPublished', next);
+      setMessage(next ? 'Portfolio published.' : 'Portfolio unpublished.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Publish failed');
+    } finally {
+      setPublishing(false);
+    }
+  }
+
   async function saveLayout(surface: 'portfolio' | 'cv') {
     const tokens = loadTokens();
     if (!tokens) {
@@ -252,34 +270,45 @@ export function PortfolioEditorPage() {
         </p>
       </header>
 
-      <div className="portfolio-tabs" role="tablist" aria-label="Portfolio sections">
-        <button
+      <div className="portfolio-tabs-row">
+        <div className="portfolio-tabs" role="tablist" aria-label="Portfolio sections">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'header'}
+            className={`portfolio-tab${activeTab === 'header' ? ' is-active' : ''}`}
+            onClick={() => setTab('header')}
+          >
+            Header
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'display'}
+            className={`portfolio-tab${activeTab === 'display' ? ' is-active' : ''}`}
+            onClick={() => setTab('display')}
+          >
+            Display
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'cv'}
+            className={`portfolio-tab${activeTab === 'cv' ? ' is-active' : ''}`}
+            onClick={() => setTab('cv')}
+          >
+            CV
+          </button>
+        </div>
+        <Button
           type="button"
-          role="tab"
-          aria-selected={activeTab === 'header'}
-          className={`portfolio-tab${activeTab === 'header' ? ' is-active' : ''}`}
-          onClick={() => setTab('header')}
+          className={`portfolio-publish${isPublished ? ' is-published' : ''}`}
+          loading={publishing}
+          aria-pressed={isPublished}
+          onClick={() => void togglePublish()}
         >
-          Header
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'display'}
-          className={`portfolio-tab${activeTab === 'display' ? ' is-active' : ''}`}
-          onClick={() => setTab('display')}
-        >
-          Display
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'cv'}
-          className={`portfolio-tab${activeTab === 'cv' ? ' is-active' : ''}`}
-          onClick={() => setTab('cv')}
-        >
-          CV
-        </button>
+          {publishing ? 'Saving…' : isPublished ? 'Published' : 'Publish'}
+        </Button>
       </div>
 
       {error ? <div className="alert-error">{error}</div> : null}
@@ -293,7 +322,6 @@ export function PortfolioEditorPage() {
             <RhfInput name="displayName" label="Display name" />
             <RhfInput name="headline" label="Headline" />
             <RhfRichText name="summary" label="Summary" placeholder="Short bio…" />
-            <RhfCheckbox name="isPublished" label="Publish portfolio publicly" />
           </EditorSection>
           <Button type="submit" loading={saving}>
             {saving ? 'Saving…' : 'Save header'}

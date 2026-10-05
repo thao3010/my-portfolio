@@ -3,11 +3,57 @@ import {
   OnModuleDestroy,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import type { Browser } from 'puppeteer';
+import type { Browser, LaunchOptions } from 'puppeteer';
+
+const LAUNCH_ARGS = ['--no-sandbox', '--disable-setuid-sandbox'];
 
 async function loadPuppeteer() {
   const mod = await import('puppeteer');
   return mod.default;
+}
+
+function isMissingBrowserError(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err);
+  return /Could not find Chrome/i.test(message);
+}
+
+function launchAttempts(): LaunchOptions[] {
+  const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH?.trim();
+  if (executablePath) {
+    return [
+      {
+        headless: true,
+        args: LAUNCH_ARGS,
+        executablePath,
+      },
+    ];
+  }
+
+  return [
+    { headless: true, args: LAUNCH_ARGS, channel: 'chrome' },
+    { headless: true, args: LAUNCH_ARGS },
+  ];
+}
+
+async function launchBrowser(
+  puppeteer: Awaited<ReturnType<typeof loadPuppeteer>>,
+): Promise<Browser> {
+  const attempts = launchAttempts();
+  let lastError: unknown;
+
+  for (const options of attempts) {
+    try {
+      return await puppeteer.launch(options);
+    } catch (err) {
+      lastError = err;
+      const hasFallback = attempts.indexOf(options) < attempts.length - 1;
+      if (!hasFallback || !isMissingBrowserError(err)) {
+        throw err;
+      }
+    }
+  }
+
+  throw lastError;
 }
 
 @Injectable()
@@ -76,12 +122,7 @@ export class CvPdfService implements OnModuleDestroy {
       return this.launching;
     }
     this.launching = loadPuppeteer()
-      .then((puppeteer) =>
-        puppeteer.launch({
-          headless: true,
-          args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        }),
-      )
+      .then((puppeteer) => launchBrowser(puppeteer))
       .then((browser) => {
         this.browser = browser;
         this.launching = null;

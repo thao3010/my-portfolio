@@ -1324,11 +1324,47 @@ a {
   background: color-mix(in srgb, var(--border) 50%, transparent);
 }
 
+.portfolio-tabs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
 .portfolio-tabs {
   display: flex;
   gap: 0.35rem;
-  margin-bottom: 1.25rem;
   flex-wrap: wrap;
+  min-width: 0;
+}
+
+.portfolio-publish {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 0.55rem 1.35rem;
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--btn-primary-text);
+  background: linear-gradient(135deg, var(--accent), var(--accent-gradient-end));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 55%, white),
+    0 10px 24px color-mix(in srgb, var(--accent) 48%, transparent);
+}
+
+.portfolio-publish:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.portfolio-publish.is-published {
+  color: #f0fdf4;
+  background: linear-gradient(135deg, #059669, #34d399);
+  box-shadow:
+    0 0 0 1px rgb(52 211 153 / 0.7),
+    0 10px 24px rgb(16 185 129 / 0.45);
 }
 
 .portfolio-tab {
@@ -1426,6 +1462,18 @@ a {
 .content-entry-delete {
   flex-shrink: 0;
   align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  color: var(--muted);
+}
+
+.content-entry-delete:hover:not(:disabled) {
+  color: var(--error-text);
+  background: color-mix(in srgb, var(--error-text) 14%, transparent);
 }
 
 .content-entry-card {

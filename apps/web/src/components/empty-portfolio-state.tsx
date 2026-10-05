@@ -15,7 +15,7 @@ export function EmptyPortfolioState({
   const message =
     reason === 'error'
       ? 'Could not reach the API. Start the API (port 3847) and set NEXT_PUBLIC_API_URL in apps/web/.env if needed.'
-      : 'This portfolio is not public yet. In the CMS: fill your profile, add work & experience, then enable Publish portfolio publicly and Save.';
+      : 'This portfolio is not public yet. In the CMS: fill your profile, add work & experience, then click Publish.';
 
   return (
     <motion.section
