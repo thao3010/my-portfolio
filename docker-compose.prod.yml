@@ -1,0 +1,81 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+
+    container_name: portfolio-api
+
+    restart: unless-stopped
+
+    environment:
+      NODE_ENV: production
+      PORT: 3847
+
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_NAME: ${DATABASE_NAME}
+
+      API_PUBLIC_URL: ${API_PUBLIC_URL}
+
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+
+    expose:
+      - "3847"
+
+    volumes:
+      - portfolio_api_uploads:/app/apps/api/uploads
+
+  cms:
+    build:
+      context: .
+      dockerfile: apps/cms/Dockerfile
+
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_WEB_URL: ${VITE_WEB_URL}
+
+    container_name: portfolio-cms
+
+    restart: unless-stopped
+
+    expose:
+      - "80"
+
+    depends_on:
+      - api
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_CMS_URL: ${NEXT_PUBLIC_CMS_URL}
+
+    container_name: portfolio-web
+
+    restart: unless-stopped
+
+    environment:
+      NODE_ENV: production
+      API_INTERNAL_URL: http://api:3847
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+
+    expose:
+      - "3000"
+
+    depends_on:
+      - api
+
+volumes:
+  portfolio_api_uploads:
