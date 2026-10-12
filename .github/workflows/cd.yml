@@ -1,0 +1,50 @@
+
+name: Build Docker Images
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-images:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [api, cms, web]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./apps/${{ matrix.service }}/Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ghcr.io/${{ github.repository }}-${{ matrix.service }}:latest
+            ghcr.io/${{ github.repository }}-${{ matrix.service }}:${{ github.sha }}
+          build-args: |
+            VITE_API_URL=https://my-portfolio-plus.duckdns.org
+            VITE_WEB_URL=https://my-portfolio-plus.duckdns.org
+            NEXT_PUBLIC_API_URL=https://my-portfolio-plus.duckdns.org
+            NEXT_PUBLIC_CMS_URL=https://my-portfolio-cms.duckdns.org
