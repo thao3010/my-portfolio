@@ -10,3 +10,4 @@ uploads/
 .idea
 .vscode
 .env.production
+.next

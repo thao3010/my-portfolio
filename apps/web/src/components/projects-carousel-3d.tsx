@@ -9,7 +9,8 @@ import {
   useTransform,
   type MotionValue,
 } from 'motion/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { RichHtml } from './rich-html';
 
 type ProjectsCarousel3DProps = {
@@ -48,12 +49,14 @@ function CarouselCard({
   rotation,
   step,
   item,
+  focused,
   onSelect,
 }: {
   virtualIndex: number;
   rotation: MotionValue<number>;
   step: MotionValue<number>;
   item: PortfolioProject;
+  focused: boolean;
   onSelect: (virtualIndex: number) => void;
 }) {
   const offset = useTransform(rotation, (value) => virtualIndex - value);
@@ -95,14 +98,20 @@ function CarouselCard({
   });
   const zIndex = useTransform(offset, (current) => Math.round(20 - Math.abs(current) * 8));
   const focus = useTransform(offset, (current) => 1 - Math.min(Math.abs(current) / 0.48, 1));
-  const cursor = useTransform(offset, (current) =>
-    Math.abs(current) < 0.2 ? 'default' : 'pointer',
-  );
   const linkPointer = useTransform(focus, (value) => (value > 0.85 ? 'auto' : 'none'));
 
   return (
     <motion.article
       className="carousel-3d-card project-card"
+      role="button"
+      tabIndex={focused ? 0 : -1}
+      aria-label={`View ${item.title} details`}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onSelect(virtualIndex);
+        }
+      }}
       style={{
         x,
         z,
@@ -111,7 +120,7 @@ function CarouselCard({
         scale,
         opacity,
         zIndex,
-        cursor,
+        cursor: 'pointer',
         ['--card-focus' as string]: focus,
       }}
       onClick={() => onSelect(virtualIndex)}
@@ -124,6 +133,7 @@ function CarouselCard({
           target="_blank"
           rel="noreferrer"
           style={{ pointerEvents: linkPointer }}
+          onClick={(event) => event.stopPropagation()}
         >
           Visit project
         </motion.a>
@@ -144,6 +154,9 @@ export function ProjectsCarousel3D({ items }: ProjectsCarousel3DProps) {
   const step = useMotionValue(200);
   const [active, setActive] = useState(0);
   const [target, setTarget] = useState(0);
+  const [detail, setDetail] = useState<PortfolioProject | null>(null);
+  const [canPortal, setCanPortal] = useState(false);
+  const closeDetail = useCallback(() => setDetail(null), []);
   const [span, setSpan] = useState({ min: -3, max: 3 });
   const spinGeneration = useRef(0);
   const spinControls = useRef<ReturnType<typeof animate> | null>(null);
@@ -189,6 +202,10 @@ export function ProjectsCarousel3D({ items }: ProjectsCarousel3DProps) {
   }, [count, rotation, spinTo]);
 
   useEffect(() => {
+    setCanPortal(true);
+  }, []);
+
+  useEffect(() => {
     syncStep();
     window.addEventListener('resize', syncStep);
     return () => window.removeEventListener('resize', syncStep);
@@ -222,6 +239,9 @@ export function ProjectsCarousel3D({ items }: ProjectsCarousel3DProps) {
       return;
     }
     const onKey = (event: KeyboardEvent) => {
+      if (detail) {
+        return;
+      }
       if (event.key === 'ArrowLeft') {
         go(-1);
       }
@@ -231,7 +251,7 @@ export function ProjectsCarousel3D({ items }: ProjectsCarousel3DProps) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [count, go]);
+  }, [count, detail, go]);
 
   if (!count) {
     return null;
@@ -257,11 +277,17 @@ export function ProjectsCarousel3D({ items }: ProjectsCarousel3DProps) {
                   rotation={rotation}
                   step={step}
                   item={item}
+                  focused={virtualIndex === target}
                   onSelect={(next) => {
-                    if (Math.abs(next - rotation.get()) < 0.35) {
+                    const index = positiveMod(next, count);
+                    const item = items[index];
+                    if (!item) {
                       return;
                     }
-                    spinTo(next);
+                    setDetail(item);
+                    if (Math.abs(next - rotation.get()) >= 0.35) {
+                      spinTo(next);
+                    }
                   }}
                 />
               );
@@ -317,6 +343,101 @@ export function ProjectsCarousel3D({ items }: ProjectsCarousel3DProps) {
           </AnimatePresence>
         </div>
       </div>
+      {canPortal
+        ? createPortal(
+            <AnimatePresence>
+              {detail ? (
+                <ProjectDetailDialog
+                  key={detail.id}
+                  project={detail}
+                  onClose={closeDetail}
+                />
+              ) : null}
+            </AnimatePresence>,
+            document.body,
+          )
+        : null}
     </div>
+  );
+}
+
+function ProjectDetailDialog({
+  project,
+  onClose,
+}: {
+  project: PortfolioProject;
+  onClose: () => void;
+}) {
+  const titleId = useId();
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    closeRef.current?.focus();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [onClose]);
+
+  return (
+    <motion.div
+      className="project-dialog-backdrop"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      onClick={onClose}
+    >
+      <motion.div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="project-dialog"
+        initial={{ opacity: 0, y: 16, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 10, scale: 0.98 }}
+        transition={{ duration: 0.22 }}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button
+          ref={closeRef}
+          type="button"
+          className="project-dialog-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          ×
+        </button>
+        <p className="eyebrow">Project</p>
+        <h3 id={titleId}>{project.title}</h3>
+        <RichHtml html={project.description} />
+        {project.tech.length ? (
+          <div className="tech-row">
+            {project.tech.map((tech) => (
+              <span key={tech} className="tech-pill">{tech}</span>
+            ))}
+          </div>
+        ) : null}
+        {project.url ? (
+          <a
+            className="btn btn-primary"
+            href={project.url}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Visit project
+          </a>
+        ) : null}
+      </motion.div>
+    </motion.div>
   );
 }

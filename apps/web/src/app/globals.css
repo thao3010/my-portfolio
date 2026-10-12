@@ -1235,6 +1235,62 @@ body {
   pointer-events: none;
 }
 
+.project-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgb(2 6 23 / 0.62);
+  backdrop-filter: blur(6px);
+}
+
+.project-dialog {
+  position: relative;
+  width: min(640px, 100%);
+  max-height: min(82vh, 760px);
+  overflow: auto;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.5rem 1.5rem 1.35rem;
+  box-shadow: 0 24px 80px rgb(15 23 42 / 0.35);
+}
+
+.project-dialog h3 {
+  margin: 0.35rem 2rem 0.75rem 0;
+  font-size: 1.55rem;
+}
+
+.project-dialog .tech-row {
+  margin-top: 1rem;
+}
+
+.project-dialog .btn {
+  margin-top: 1.15rem;
+}
+
+.project-dialog-close {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.project-dialog-close:hover {
+  border-color: var(--accent);
+}
+
 @media (max-width: 720px) {
   .carousel-3d-viewport {
     height: clamp(400px, 56vh, 480px);
