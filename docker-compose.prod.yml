@@ -3,7 +3,8 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-
+    ports:
+      - "127.0.0.1:3847:3847"
     container_name: portfolio-api
 
     restart: unless-stopped
@@ -17,7 +18,7 @@ services:
       DATABASE_USER: ${DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_NAME: ${DATABASE_NAME}
-
+      DATABASE_SSL: ${DATABASE_SSL}
       API_PUBLIC_URL: ${API_PUBLIC_URL}
 
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
@@ -43,7 +44,8 @@ services:
         VITE_WEB_URL: ${VITE_WEB_URL}
 
     container_name: portfolio-cms
-
+    ports:
+      - "127.0.0.1:8080:80"
     restart: unless-stopped
 
     expose:
@@ -62,7 +64,8 @@ services:
         NEXT_PUBLIC_CMS_URL: ${NEXT_PUBLIC_CMS_URL}
 
     container_name: portfolio-web
-
+    ports:
+      - "127.0.0.1:3000:3000"
     restart: unless-stopped
 
     environment:
