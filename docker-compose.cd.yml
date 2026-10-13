@@ -1,0 +1,13 @@
+
+services:
+  api:
+    image: ghcr.io/thao3010/my-portfolio-api:${IMAGE_TAG:?IMAGE_TAG is required}
+    build: !reset null
+
+  cms:
+    image: ghcr.io/thao3010/my-portfolio-cms:${IMAGE_TAG:?IMAGE_TAG is required}
+    build: !reset null
+
+  web:
+    image: ghcr.io/thao3010/my-portfolio-web:${IMAGE_TAG:?IMAGE_TAG is required}
+    build: !reset null
