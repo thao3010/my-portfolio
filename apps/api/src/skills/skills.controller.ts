@@ -138,9 +138,9 @@ export class SkillsController {
       },
     }),
   )
-  uploadIcon(
-    @UploadedFile() file: Express.Multer.File | undefined,
-  ): { url: string } {
+  uploadIcon(@UploadedFile() file: Express.Multer.File | undefined): {
+    url: string;
+  } {
     if (!file) {
       throw new BadRequestException('File is required');
     }

@@ -222,7 +222,7 @@ export class PortfoliosService {
       contact = portfolio.contact;
     }
     if (!skills.length && portfolio.skills?.length) {
-      skills = (portfolio.skills as string[]).map((title, index) => ({
+      skills = portfolio.skills.map((title, index) => ({
         id: `legacy-skill-${index}`,
         icon: '',
         title,

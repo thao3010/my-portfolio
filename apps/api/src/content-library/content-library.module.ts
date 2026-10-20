@@ -7,9 +7,7 @@ import { Experience } from './entities/experience.entity';
 import { Project } from './entities/project.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Experience, Project, ContactProfile]),
-  ],
+  imports: [TypeOrmModule.forFeature([Experience, Project, ContactProfile])],
   controllers: [ContentLibraryController],
   providers: [ContentLibraryService],
   exports: [ContentLibraryService],

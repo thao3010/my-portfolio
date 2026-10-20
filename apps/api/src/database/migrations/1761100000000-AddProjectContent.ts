@@ -24,15 +24,27 @@ export class AddProjectContent1761100000000 implements MigrationInterface {
       ADD COLUMN "content" text NOT NULL DEFAULT ''
     `);
 
-    const rows: { id: string; description: string }[] = await queryRunner.query(
+    const raw: unknown = await queryRunner.query(
       `SELECT "id", "description" FROM "projects"`,
     );
+    if (!Array.isArray(raw)) {
+      return;
+    }
 
-    for (const row of rows) {
-      const description = row.description ?? '';
+    for (const row of raw) {
+      if (typeof row !== 'object' || row === null) {
+        continue;
+      }
+      const record = row as Record<string, unknown>;
+      const id = record.id;
+      const description =
+        typeof record.description === 'string' ? record.description : '';
+      if (typeof id !== 'string') {
+        continue;
+      }
       await queryRunner.query(
         `UPDATE "projects" SET "content" = $1, "description" = $2 WHERE "id" = $3`,
-        [description, htmlToPlain(description), row.id],
+        [description, htmlToPlain(description), id],
       );
     }
   }

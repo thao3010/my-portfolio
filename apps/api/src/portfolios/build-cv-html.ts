@@ -22,10 +22,7 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-function projectBody(proj: {
-  description: string;
-  content: string;
-}): string {
+function projectBody(proj: { description: string; content: string }): string {
   const summary = proj.description.trim();
   const body = proj.content.trim();
   const summaryHtml =
