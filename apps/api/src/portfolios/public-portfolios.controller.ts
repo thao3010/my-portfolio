@@ -42,7 +42,6 @@ export class PublicPortfoliosController {
       await this.portfoliosService.getPublishedByUsername(username);
     return {
       username: user.username,
-      locale: user.preferredLocale,
       ...portfolio,
     };
   }

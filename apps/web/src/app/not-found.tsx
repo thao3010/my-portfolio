@@ -1,13 +1,9 @@
-import Link from 'next/link';
+import { SiteProblemState } from '../components/site-problem-state';
 
 export default function NotFound() {
   return (
-    <main className="page">
-      <h1>404</h1>
-      <p>This page could not be found.</p>
-      <p>
-        <Link href="/">Go home</Link>
-      </p>
+    <main className="page problem-page">
+      <SiteProblemState kind="route_404" />
     </main>
   );
 }

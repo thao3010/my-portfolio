@@ -1,3 +1,5 @@
+import type { PortfolioPublicUi } from './portfolio-public-ui';
+import { DEFAULT_PORTFOLIO_PUBLIC_UI } from './portfolio-public-ui';
 import type { PortfolioSectionId, SurfaceLayout } from './surface-layout';
 import { createEmptySurfaceLayout } from './surface-layout';
 
@@ -21,7 +23,9 @@ export type PortfolioExperience = {
 export type PortfolioProject = {
   id: string;
   title: string;
+  period: string;
   description: string;
+  content: string;
   url?: string;
   tech: string[];
 };
@@ -45,6 +49,7 @@ export type PortfolioProfile = {
 export type PortfolioEditorPayload = PortfolioProfile & {
   portfolioLayout: SurfaceLayout;
   cvLayout: SurfaceLayout;
+  publicUi: PortfolioPublicUi;
 };
 
 export type PortfolioContent = PortfolioProfile & {
@@ -53,6 +58,7 @@ export type PortfolioContent = PortfolioProfile & {
   experiences: PortfolioExperience[];
   projects: PortfolioProject[];
   skills: PortfolioSkill[];
+  publicUi: PortfolioPublicUi;
 };
 
 export function createEmptyPortfolioContent(): PortfolioContent {
@@ -67,6 +73,7 @@ export function createEmptyPortfolioContent(): PortfolioContent {
     projects: [],
     skills: [],
     isPublished: false,
+    publicUi: { ...DEFAULT_PORTFOLIO_PUBLIC_UI },
   };
 }
 
@@ -78,6 +85,7 @@ export function createEmptyPortfolioEditorPayload(): PortfolioEditorPayload {
     isPublished: false,
     portfolioLayout: createEmptySurfaceLayout(),
     cvLayout: createEmptySurfaceLayout(),
+    publicUi: { ...DEFAULT_PORTFOLIO_PUBLIC_UI },
   };
 }
 

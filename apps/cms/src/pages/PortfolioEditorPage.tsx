@@ -1,4 +1,6 @@
 import {
+  DEFAULT_PORTFOLIO_PUBLIC_UI,
+  PORTFOLIO_CONTACT_FIELDS,
   createEmptySurfaceLayout,
   type ContactItem,
   type ExperienceItem,
@@ -28,6 +30,7 @@ import {
   portfolioFormSchema,
   type PortfolioFormValues,
 } from '../schemas/portfolio.schema';
+import { notify } from '../lib/notify';
 import { usePortfolioEditorStore } from '../stores/portfolio-editor.store';
 
 type PortfolioTab = 'header' | 'display' | 'cv';
@@ -50,7 +53,7 @@ export function PortfolioEditorPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = tabFromSearch(searchParams);
 
-  const { loading, saving, error, message, setLoading, setSaving, setError, setMessage, clearFeedback } =
+  const { loading, saving, setLoading, setSaving, setError, setMessage, clearFeedback } =
     usePortfolioEditorStore();
 
   const [portfolioLayout, setPortfolioLayout] = useState<SurfaceLayout>(
@@ -66,8 +69,6 @@ export function PortfolioEditorPage() {
     skills: [],
   });
   const [layoutSaving, setLayoutSaving] = useState(false);
-  const [layoutMessage, setLayoutMessage] = useState<string | null>(null);
-  const [layoutError, setLayoutError] = useState<string | null>(null);
   const [createSection, setCreateSection] =
     useState<PortfolioSectionId | null>(null);
   const [createLayoutTarget, setCreateLayoutTarget] = useState<
@@ -82,6 +83,7 @@ export function PortfolioEditorPage() {
       headline: '',
       summary: '',
       isPublished: false,
+      publicUi: DEFAULT_PORTFOLIO_PUBLIC_UI,
     },
   });
   const isPublished = form.watch('isPublished');
@@ -106,6 +108,7 @@ export function PortfolioEditorPage() {
         headline: portfolio.headline,
         summary: portfolio.summary,
         isPublished: portfolio.isPublished,
+        publicUi: portfolio.publicUi,
       });
       setPortfolioLayout(portfolio.portfolioLayout);
       setCvLayout(portfolio.cvLayout);
@@ -214,8 +217,6 @@ export function PortfolioEditorPage() {
     const next = !form.getValues('isPublished');
     setPublishing(true);
     clearFeedback();
-    setLayoutError(null);
-    setLayoutMessage(null);
     try {
       await api.saveMyPortfolio(tokens.accessToken, { isPublished: next });
       form.setValue('isPublished', next);
@@ -233,19 +234,17 @@ export function PortfolioEditorPage() {
       return;
     }
     setLayoutSaving(true);
-    setLayoutError(null);
-    setLayoutMessage(null);
     try {
       await api.saveMyPortfolio(tokens.accessToken, {
         ...(surface === 'portfolio'
           ? { portfolioLayout }
           : { cvLayout }),
       });
-      setLayoutMessage(
+      notify.success(
         surface === 'portfolio' ? 'Portfolio display saved.' : 'CV layout saved.',
       );
     } catch (err) {
-      setLayoutError(err instanceof Error ? err.message : 'Save failed');
+      notify.error(err instanceof Error ? err.message : 'Save failed');
     } finally {
       setLayoutSaving(false);
     }
@@ -311,17 +310,53 @@ export function PortfolioEditorPage() {
         </Button>
       </div>
 
-      {error ? <div className="alert-error">{error}</div> : null}
-      {message ? <div className="alert-success">{message}</div> : null}
-      {layoutError ? <div className="alert-error">{layoutError}</div> : null}
-      {layoutMessage ? <div className="alert-success">{layoutMessage}</div> : null}
-
       {activeTab === 'header' ? (
         <Form form={form} onSubmit={onSubmitHeader} className="editor-form">
           <EditorSection title="Profile (public header)" index={0}>
             <RhfInput name="displayName" label="Display name" />
             <RhfInput name="headline" label="Headline" />
             <RhfRichText name="summary" label="Summary" placeholder="Short bio…" />
+          </EditorSection>
+          <EditorSection title="Page labels & copy" index={1}>
+            <p className="muted layout-hint">
+              Text shown on your public portfolio (section headings, buttons, hints).
+            </p>
+            <RhfInput name="publicUi.badgeLabel" label="Hero badge" />
+            <RhfInput name="publicUi.cvDownloadLabel" label="CV download button" />
+            <RhfInput name="publicUi.backLinkLabel" label="Back link" />
+            <RhfInput
+              name="publicUi.emptyDraftHint"
+              label="Empty sections hint"
+            />
+            <RhfInput
+              name="publicUi.sectionTitles.contact"
+              label="Contact section title"
+            />
+            <RhfInput
+              name="publicUi.sectionTitles.experience"
+              label="Experience section title"
+            />
+            <RhfInput
+              name="publicUi.sectionTitles.projects"
+              label="Projects section title"
+            />
+            <RhfInput
+              name="publicUi.sectionTitles.skills"
+              label="Skills section title"
+            />
+          </EditorSection>
+          <EditorSection title="Contact field labels" index={2}>
+            <p className="muted layout-hint">
+              Labels for each contact row on the public site (values come from
+              Content → Contacts).
+            </p>
+            {PORTFOLIO_CONTACT_FIELDS.map((field) => (
+              <RhfInput
+                key={field}
+                name={`publicUi.contactFieldLabels.${field}`}
+                label={field}
+              />
+            ))}
           </EditorSection>
           <Button type="submit" loading={saving}>
             {saving ? 'Saving…' : 'Save header'}

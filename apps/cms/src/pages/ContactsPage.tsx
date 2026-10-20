@@ -12,6 +12,7 @@ import { ContentSectionNav } from '../components/ContentSectionNav';
 import { Form } from '../components/form';
 import { LoadingPulse } from '../components/LoadingPulse';
 import { Button } from '../components/ui/Button';
+import { notify } from '../lib/notify';
 import {
   contactFormDefaults,
   contactFormSchema,
@@ -26,9 +27,6 @@ export function ContactsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: contactFormDefaults,
@@ -45,7 +43,7 @@ export function ContactsPage() {
     try {
       setItems(await api.fetchMyContacts(tokens.accessToken));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load');
+      notify.error(err instanceof Error ? err.message : 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -99,8 +97,6 @@ export function ContactsPage() {
       return;
     }
     setSaving(true);
-    setError(null);
-    setMessage(null);
     try {
       const payload = contactFormValuesToPayload(values);
       if (editingId) {
@@ -112,15 +108,15 @@ export function ContactsPage() {
         setItems((list) =>
           list.map((row) => (row.id === updated.id ? updated : row)),
         );
-        setMessage('Contact updated');
+        notify.success('Contact updated');
       } else {
         const created = await api.createContact(tokens.accessToken, payload);
         setItems((list) => [...list, created]);
-        setMessage('Contact added');
+        notify.success('Contact added');
       }
       closeModal();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Save failed');
+      notify.error(err instanceof Error ? err.message : 'Save failed');
     } finally {
       setSaving(false);
     }
@@ -137,9 +133,9 @@ export function ContactsPage() {
       if (editingId === id) {
         closeModal();
       }
-      setMessage('Contact deleted');
+      notify.success('Contact deleted');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Delete failed');
+      notify.error(err instanceof Error ? err.message : 'Delete failed');
     }
   }
 
@@ -158,9 +154,6 @@ export function ContactsPage() {
         <p>Store contact profiles, then choose which to show on Portfolio → Display.</p>
       </header>
       <ContentSectionNav />
-      {error ? <div className="alert-error">{error}</div> : null}
-      {message ? <div className="alert-success">{message}</div> : null}
-
       <section className="content-page">
         <div className="content-list-header">
           <h2>All ({items.length})</h2>

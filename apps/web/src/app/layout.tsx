@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { SiteFooter } from '../components/site-footer';
 import { SiteHeader } from '../components/site-header';
 import { ThemeProvider } from '../components/theme-provider';
 import './globals.css';
@@ -17,8 +18,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <SiteHeader />
-          {children}
+          <div className="site-shell">
+            <SiteHeader />
+            <div className="site-main">{children}</div>
+            <SiteFooter />
+          </div>
         </ThemeProvider>
       </body>
     </html>

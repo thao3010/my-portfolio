@@ -2,6 +2,7 @@ import {
   createEmptyPortfolioContent,
   createEmptySurfaceLayout,
   DEFAULT_PORTFOLIO_SECTION_ORDER,
+  normalizePortfolioPublicUi,
   normalizeSectionOrder,
   type PortfolioContent,
   type PortfolioEditorPayload,
@@ -75,6 +76,7 @@ export class PortfoliosService {
         isPublished: empty.isPublished,
         portfolioLayout: createEmptySurfaceLayout(),
         cvLayout: createEmptySurfaceLayout(),
+        publicUi: {},
       });
       portfolio = await this.portfoliosRepository.save(portfolio);
     }
@@ -103,12 +105,15 @@ export class PortfoliosService {
       ...(dto.cvLayout !== undefined && {
         cvLayout: normalizeLayout(dto.cvLayout),
       }),
+      ...(dto.publicUi !== undefined && {
+        publicUi: normalizePortfolioPublicUi(dto.publicUi),
+      }),
     });
     return this.portfoliosRepository.save(portfolio);
   }
 
   async getPublishedByUsername(username: string): Promise<{
-    user: Pick<User, 'username' | 'preferredLocale'>;
+    user: Pick<User, 'username'>;
     portfolio: PortfolioContent;
   }> {
     const portfolio = await this.portfoliosRepository
@@ -132,14 +137,13 @@ export class PortfoliosService {
     return {
       user: {
         username: portfolio.user.username,
-        preferredLocale: portfolio.user.preferredLocale,
       },
       portfolio: resolved,
     };
   }
 
   async getPublishedCvByUsername(username: string): Promise<{
-    user: Pick<User, 'username' | 'preferredLocale'>;
+    user: Pick<User, 'username'>;
     portfolio: PortfolioContent;
   }> {
     const portfolio = await this.portfoliosRepository
@@ -166,7 +170,6 @@ export class PortfoliosService {
     return {
       user: {
         username: portfolio.user.username,
-        preferredLocale: portfolio.user.preferredLocale,
       },
       portfolio: resolved,
     };
@@ -186,6 +189,7 @@ export class PortfoliosService {
       isPublished: portfolio.isPublished,
       portfolioLayout: normalizeLayout(portfolio.portfolioLayout),
       cvLayout: normalizeLayout(portfolio.cvLayout),
+      publicUi: normalizePortfolioPublicUi(portfolio.publicUi),
       updatedAt: portfolio.updatedAt.toISOString(),
     };
   }
@@ -236,6 +240,7 @@ export class PortfoliosService {
       experiences,
       projects,
       skills,
+      publicUi: normalizePortfolioPublicUi(portfolio.publicUi),
     };
   }
 
@@ -253,7 +258,7 @@ export class PortfoliosService {
       .filter((skill): skill is NonNullable<typeof skill> => Boolean(skill))
       .map((skill) => ({
         id: skill.id,
-        icon: skill.icon,
+        icon: this.skillsService.normalizeIcon(skill.icon),
         title: skill.title,
         description: skill.description,
       }));
@@ -291,7 +296,9 @@ export class PortfoliosService {
     for (const proj of portfolio.projects ?? []) {
       const row = await this.contentLibrary.createProject(portfolio.userId, {
         title: proj.title,
+        period: proj.period,
         description: proj.description,
+        content: proj.content,
         url: proj.url,
         tech: proj.tech,
       });

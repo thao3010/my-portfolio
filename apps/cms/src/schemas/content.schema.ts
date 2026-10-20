@@ -35,8 +35,10 @@ function optionalEmail() {
 
 export const projectFormSchema = z.object({
   title: z.string().trim().min(1, 'Title is required'),
+  period: z.string().max(120),
   url: optionalUrl('Enter a valid URL'),
-  description: z.string(),
+  description: z.string().max(2000),
+  content: z.string().max(10000),
   tech: z.string(),
 });
 
@@ -44,8 +46,10 @@ export type ProjectFormValues = z.infer<typeof projectFormSchema>;
 
 export const projectFormDefaults: ProjectFormValues = {
   title: '',
+  period: '',
   url: '',
   description: '',
+  content: '',
   tech: '',
 };
 
@@ -59,7 +63,9 @@ export function parseTech(raw: string): string[] {
 export function projectFormValuesToPayload(values: ProjectFormValues) {
   return {
     title: values.title.trim(),
-    description: values.description,
+    period: values.period.trim(),
+    description: values.description.trim(),
+    content: values.content,
     url: values.url.trim() || undefined,
     tech: parseTech(values.tech),
   };

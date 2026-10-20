@@ -1,19 +1,17 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '@portfolio/shared';
+import { PUBLIC_URL_PATTERN } from '@portfolio/shared';
 
 @ApiTags('Health')
 @Controller()
 export class HealthController {
   @Get('health')
-  @ApiOperation({ summary: 'Service health and locale metadata' })
+  @ApiOperation({ summary: 'Service health and public URL metadata' })
   health() {
     return {
       status: 'ok',
       service: 'portfolio-api',
-      publicUrlPattern: `/{locale}/{username}`,
-      supportedLocales: SUPPORTED_LOCALES,
-      defaultLocale: DEFAULT_LOCALE,
+      publicUrlPattern: PUBLIC_URL_PATTERN,
     };
   }
 }

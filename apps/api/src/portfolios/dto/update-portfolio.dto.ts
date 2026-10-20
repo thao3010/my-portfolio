@@ -50,4 +50,8 @@ export class UpdatePortfolioDto {
   @IsOptional()
   @IsObject()
   cvLayout?: Record<string, unknown>;
+
+  @IsOptional()
+  @IsObject()
+  publicUi?: Record<string, unknown>;
 }

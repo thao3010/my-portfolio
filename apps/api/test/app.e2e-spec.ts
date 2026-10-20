@@ -35,7 +35,7 @@ describe('Health (e2e)', () => {
       .expect((res) => {
         const body = res.body as { status: string; publicUrlPattern: string };
         expect(body.status).toBe('ok');
-        expect(body.publicUrlPattern).toBe('/{locale}/{username}');
+        expect(body.publicUrlPattern).toBe('/{username}');
       });
   });
 });

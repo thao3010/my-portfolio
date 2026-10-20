@@ -1,43 +1,17 @@
 'use client';
 
+import {
+  simpleLifecycleStepsWithIds,
+  type SimpleLifecycleDiagramUi,
+  type SimpleLifecycleStepId,
+} from '../lib/react-lifecycle-ui';
 import { motion } from 'motion/react';
-
-export const SIMPLE_LIFECYCLE_STEPS = [
-  {
-    id: 'render',
-    label: 'Render',
-    hint: 'Hàm component chạy · tạo UI',
-  },
-  {
-    id: 'dom',
-    label: 'DOM',
-    hint: 'React gắn node lên trình duyệt',
-  },
-  {
-    id: 'effects',
-    label: 'Effects',
-    hint: 'useEffect · fetch, listener…',
-  },
-  {
-    id: 'update',
-    label: 'Update',
-    hint: 'State đổi → render lại',
-  },
-  {
-    id: 'unmount',
-    label: 'Unmount',
-    hint: 'Gỡ component · cleanup',
-  },
-] as const;
 
 /** Node centers in SVG viewBox (0–1000). */
 const NODE_X = [100, 300, 500, 700, 900] as const;
 const RAIL_Y = 42;
 const LOOP_PATH =
   `M ${NODE_X[3]} ${RAIL_Y} L ${NODE_X[3]} 78 C ${NODE_X[3]} 96 520 102 120 102 L ${NODE_X[0]} 102 L ${NODE_X[0]} ${RAIL_Y + 4}`;
-
-export type SimpleLifecycleStepId =
-  (typeof SIMPLE_LIFECYCLE_STEPS)[number]['id'];
 
 export type DetailedLifecyclePhase =
   | 'render'
@@ -74,26 +48,27 @@ export function mapPhaseToSimpleStep(
 type Props = {
   activeStep: SimpleLifecycleStepId;
   reduceMotion?: boolean;
+  copy: SimpleLifecycleDiagramUi;
 };
 
 export function ReactLifecycleSimpleDiagram({
   activeStep,
   reduceMotion = false,
+  copy,
 }: Props) {
-  const activeIndex = SIMPLE_LIFECYCLE_STEPS.findIndex(
-    (s) => s.id === activeStep,
-  );
-  const active = SIMPLE_LIFECYCLE_STEPS[activeIndex] ?? SIMPLE_LIFECYCLE_STEPS[0];
+  const steps = simpleLifecycleStepsWithIds(copy);
+  const activeIndex = steps.findIndex((s) => s.id === activeStep);
+  const active = steps[activeIndex] ?? steps[0];
   const loopActive = activeStep === 'update' || activeStep === 'render';
 
   return (
     <div
       className="react-lifecycle-simple"
       role="img"
-      aria-label={`Vòng đời React: ${SIMPLE_LIFECYCLE_STEPS.map((s) => s.label).join(', ')}`}
+      aria-label={`${copy.ariaSummaryLabel}: ${steps.map((s) => s.label).join(', ')}`}
     >
       <p className="react-lifecycle-simple-title">
-        Sơ đồ vòng đời <span>React</span> (tóm tắt)
+        {copy.title} <span>{copy.titleAccent}</span>
       </p>
 
       <div className="react-lifecycle-simple-flow">
@@ -179,13 +154,17 @@ export function ReactLifecycleSimpleDiagram({
         </svg>
 
         <p className="react-lifecycle-simple-loop-caption" aria-hidden>
-          <span className="react-lifecycle-simple-loop-from">Update</span>
+          <span className="react-lifecycle-simple-loop-from">
+            {copy.loopFromLabel}
+          </span>
           <span className="react-lifecycle-simple-loop-arrow">↩</span>
-          <span className="react-lifecycle-simple-loop-to">Render</span>
+          <span className="react-lifecycle-simple-loop-to">
+            {copy.loopToLabel}
+          </span>
         </p>
 
         <div className="react-lifecycle-simple-track">
-          {SIMPLE_LIFECYCLE_STEPS.map((step, i) => {
+          {steps.map((step, i) => {
             const isActive = step.id === activeStep;
             const isPast = i < activeIndex;
             const isUpdate = step.id === 'update';
@@ -224,7 +203,7 @@ export function ReactLifecycleSimpleDiagram({
                   </span>
                   {isUpdate ? (
                     <span className="react-lifecycle-simple-node-back" aria-hidden>
-                      → Render
+                      {copy.updateBackLabel}
                     </span>
                   ) : null}
                 </motion.div>
