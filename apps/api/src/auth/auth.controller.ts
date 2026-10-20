@@ -1,9 +1,5 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BEARER_SCHEME } from '../setup-swagger';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';

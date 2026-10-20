@@ -5,10 +5,10 @@ import { useEffect, useState } from 'react';
 import * as api from '../api/client';
 import type { AuthUser } from '../api/types';
 import { loadTokens } from '../auth/storage';
+import { notify } from '../lib/notify';
 
 export function AdminUsersPage() {
   const [users, setUsers] = useState<AuthUser[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,7 +21,7 @@ export function AdminUsersPage() {
       .fetchAdminUsers(tokens.accessToken)
       .then(setUsers)
       .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : 'Failed to load users');
+        notify.error(err instanceof Error ? err.message : 'Failed to load users');
       })
       .finally(() => setLoading(false));
   }, []);
@@ -40,7 +40,7 @@ export function AdminUsersPage() {
         list.map((user) => (user.id === updated.id ? updated : user)),
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Update failed');
+      notify.error(err instanceof Error ? err.message : 'Update failed');
     }
   }
 
@@ -58,7 +58,6 @@ export function AdminUsersPage() {
         <h1>User management</h1>
         <p>Admin-only: roles and account status.</p>
       </header>
-      {error ? <div className="alert-error">{error}</div> : null}
       <div className="table-wrap">
         <table className="data-table">
           <thead>

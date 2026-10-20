@@ -1,10 +1,9 @@
 import { create } from 'zustand';
+import { notify } from '../lib/notify';
 
 type PortfolioEditorStore = {
   loading: boolean;
   saving: boolean;
-  error: string | null;
-  message: string | null;
   setLoading: (loading: boolean) => void;
   setSaving: (saving: boolean) => void;
   setError: (error: string | null) => void;
@@ -15,11 +14,17 @@ type PortfolioEditorStore = {
 export const usePortfolioEditorStore = create<PortfolioEditorStore>((set) => ({
   loading: true,
   saving: false,
-  error: null,
-  message: null,
   setLoading: (loading) => set({ loading }),
   setSaving: (saving) => set({ saving }),
-  setError: (error) => set({ error, message: null }),
-  setMessage: (message) => set({ message, error: null }),
-  clearFeedback: () => set({ error: null, message: null }),
+  setError: (error) => {
+    if (error) {
+      notify.error(error);
+    }
+  },
+  setMessage: (message) => {
+    if (message) {
+      notify.success(message);
+    }
+  },
+  clearFeedback: () => {},
 }));

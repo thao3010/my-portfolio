@@ -13,14 +13,8 @@ import type {
   ProjectItem,
 } from '@portfolio/shared';
 import { In, Repository } from 'typeorm';
-import {
-  CreateContactDto,
-  UpdateContactDto,
-} from './dto/contact.dto';
-import {
-  CreateExperienceDto,
-  UpdateExperienceDto,
-} from './dto/experience.dto';
+import { CreateContactDto, UpdateContactDto } from './dto/contact.dto';
+import { CreateExperienceDto, UpdateExperienceDto } from './dto/experience.dto';
 import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
 import { ContactProfile } from './entities/contact-profile.entity';
 import { Experience } from './entities/experience.entity';
@@ -95,7 +89,9 @@ export class ContentLibraryService {
     const row = this.projectsRepo.create({
       userId,
       title: dto.title.trim(),
+      period: dto.period?.trim() ?? '',
       description: dto.description?.trim() ?? '',
+      content: dto.content?.trim() ?? '',
       url: dto.url?.trim() || null,
       tech: dto.tech ?? [],
     });
@@ -111,8 +107,14 @@ export class ContentLibraryService {
     if (dto.title !== undefined) {
       row.title = dto.title.trim();
     }
+    if (dto.period !== undefined) {
+      row.period = dto.period.trim();
+    }
     if (dto.description !== undefined) {
       row.description = dto.description.trim();
+    }
+    if (dto.content !== undefined) {
+      row.content = dto.content.trim();
     }
     if (dto.url !== undefined) {
       row.url = dto.url.trim() || null;
@@ -203,7 +205,9 @@ export class ContentLibraryService {
     return {
       id: row.id,
       title: row.title,
+      period: row.period ?? '',
       description: row.description,
+      content: row.content ?? '',
       url: row.url ?? undefined,
       tech: row.tech ?? [],
       createdAt: row.createdAt.toISOString(),
@@ -290,7 +294,9 @@ export class ContentLibraryService {
       .map((r) => ({
         id: r.id,
         title: r.title,
+        period: r.period ?? '',
         description: r.description,
+        content: r.content ?? '',
         url: r.url ?? undefined,
         tech: r.tech ?? [],
       }));

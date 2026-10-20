@@ -1,9 +1,5 @@
 import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BEARER_SCHEME } from '../setup-swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -26,15 +22,14 @@ export class PortfoliosController {
   }
 
   @Put()
-  @ApiOperation({ summary: 'Update portfolio profile, layouts, and publish flag' })
+  @ApiOperation({
+    summary: 'Update portfolio profile, layouts, and publish flag',
+  })
   async updateMine(
     @CurrentUser() user: JwtPayload,
     @Body() dto: UpdatePortfolioDto,
   ) {
-    const portfolio = await this.portfoliosService.updateForUser(
-      user.sub,
-      dto,
-    );
+    const portfolio = await this.portfoliosService.updateForUser(user.sub, dto);
     return this.portfoliosService.toEditorResponse(portfolio);
   }
 }

@@ -1,12 +1,5 @@
 import { UserRole } from '@portfolio/shared';
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -42,10 +35,7 @@ export class AdminController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update user role or active status (admin only)' })
   @ApiParam({ name: 'id', format: 'uuid' })
-  async updateUser(
-    @Param('id') id: string,
-    @Body() dto: UpdateUserAdminDto,
-  ) {
+  async updateUser(@Param('id') id: string, @Body() dto: UpdateUserAdminDto) {
     const user = await this.usersService.updateAdminFields(id, dto);
     return this.authService.sanitizeUser(user);
   }

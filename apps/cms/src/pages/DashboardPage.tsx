@@ -14,7 +14,7 @@ export function DashboardPage() {
     return null;
   }
 
-  const publicUrl = `${WEB_ORIGIN}/${user.preferredLocale}/${user.username}`;
+  const publicUrl = `${WEB_ORIGIN}/${user.username}`;
   const isAdmin = user.role === UserRole.ADMIN;
 
   return (

@@ -24,8 +24,14 @@ export class Project {
   @Column()
   title!: string;
 
+  @Column({ type: 'varchar', default: '' })
+  period!: string;
+
   @Column({ type: 'text', default: '' })
   description!: string;
+
+  @Column({ type: 'text', default: '' })
+  content!: string;
 
   @Column({ type: 'varchar', nullable: true })
   url!: string | null;

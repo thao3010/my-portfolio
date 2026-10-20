@@ -1,5 +1,6 @@
 import type { SkillIconPreset } from '@portfolio/shared';
 import { useRef, useState } from 'react';
+import { notify } from '../lib/notify';
 import { Button } from './ui/Button';
 
 type SkillIconPickerProps = {
@@ -19,19 +20,17 @@ export function SkillIconPicker({
 }: SkillIconPickerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-
   async function handleFileChange(file: File | undefined) {
     if (!file) {
       return;
     }
-    setUploadError(null);
     setUploading(true);
     try {
       const url = await onUpload(file);
       onChange(url);
+      notify.success('Icon uploaded');
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : 'Upload failed');
+      notify.error(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploading(false);
       if (inputRef.current) {
@@ -67,9 +66,6 @@ export function SkillIconPicker({
           disabled={disabled || uploading}
           onChange={(e) => void handleFileChange(e.target.files?.[0])}
         />
-        {uploadError ? (
-          <p className="field-error" role="alert">{uploadError}</p>
-        ) : null}
       </div>
       <p className="skill-icon-picker__label">Or choose a preset</p>
       <div className="skill-icon-picker__grid">

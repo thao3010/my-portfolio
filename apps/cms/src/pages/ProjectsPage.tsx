@@ -12,6 +12,7 @@ import { ContentSectionNav } from '../components/ContentSectionNav';
 import { Form } from '../components/form';
 import { LoadingPulse } from '../components/LoadingPulse';
 import { Button } from '../components/ui/Button';
+import { notify } from '../lib/notify';
 import {
   projectFormDefaults,
   projectFormSchema,
@@ -26,9 +27,6 @@ export function ProjectsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
     defaultValues: projectFormDefaults,
@@ -45,7 +43,7 @@ export function ProjectsPage() {
     try {
       setItems(await api.fetchMyProjects(tokens.accessToken));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load');
+      notify.error(err instanceof Error ? err.message : 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -64,8 +62,10 @@ export function ProjectsPage() {
       if (item) {
         form.reset({
           title: item.title,
+          period: item.period,
           url: item.url ?? '',
           description: item.description,
+          content: item.content,
           tech: item.tech.join(', '),
         });
       }
@@ -96,8 +96,6 @@ export function ProjectsPage() {
       return;
     }
     setSaving(true);
-    setError(null);
-    setMessage(null);
     try {
       const payload = projectFormValuesToPayload(values);
       if (editingId) {
@@ -109,15 +107,15 @@ export function ProjectsPage() {
         setItems((list) =>
           list.map((row) => (row.id === updated.id ? updated : row)),
         );
-        setMessage('Project updated');
+        notify.success('Project updated');
       } else {
         const created = await api.createProject(tokens.accessToken, payload);
         setItems((list) => [...list, created]);
-        setMessage('Project added');
+        notify.success('Project added');
       }
       closeModal();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Save failed');
+      notify.error(err instanceof Error ? err.message : 'Save failed');
     } finally {
       setSaving(false);
     }
@@ -134,9 +132,9 @@ export function ProjectsPage() {
       if (editingId === id) {
         closeModal();
       }
-      setMessage('Project deleted');
+      notify.success('Project deleted');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Delete failed');
+      notify.error(err instanceof Error ? err.message : 'Delete failed');
     }
   }
 
@@ -155,9 +153,6 @@ export function ProjectsPage() {
         <p>Manage portfolio projects, then pick them on Portfolio → Display.</p>
       </header>
       <ContentSectionNav />
-      {error ? <div className="alert-error">{error}</div> : null}
-      {message ? <div className="alert-success">{message}</div> : null}
-
       <section className="content-page">
         <div className="content-list-header">
           <h2>All ({items.length})</h2>
@@ -175,6 +170,7 @@ export function ProjectsPage() {
                 deleteLabel={`Delete ${item.title}`}
               >
                 <h3>{item.title}</h3>
+                <p className="muted">{item.period || 'No period'}</p>
                 {item.tech.length ? (
                   <p className="muted">{item.tech.join(' · ')}</p>
                 ) : null}

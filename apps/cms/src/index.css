@@ -528,6 +528,14 @@ a {
   color: var(--header-text);
 }
 
+[data-sonner-toaster] {
+  z-index: 10050;
+}
+
+.cms-toast {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
 .alert-error {
   background: var(--error-bg);
   color: var(--error-text);
@@ -707,18 +715,18 @@ a {
 
 .ui-control {
   display: block;
-  border: 1px solid var(--input-border);
+  /* border: 1px solid var(--input-border); */
   border-radius: 10px;
-  background: var(--input-bg);
+  /* background: var(--input-bg); */
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
 }
 
-.ui-control:focus-within {
+/* .ui-control:focus-within {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--focus-ring);
-}
+} */
 
 .ui-field .ui-control .ui-input,
 .ui-field .ui-control select.ui-input,
@@ -737,13 +745,13 @@ a {
     box-shadow 0.2s ease;
 }
 
-.ui-field .ui-control .ui-input,
+/* .ui-field .ui-control .ui-input,
 .ui-field .ui-control select.ui-input {
   border: none;
   border-radius: 8px;
   box-shadow: none;
   background: transparent;
-}
+} */
 
 .ui-input::placeholder,
 .ui-textarea::placeholder {
@@ -861,6 +869,12 @@ a {
 .ui-rich-text-btn:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+.ui-rich-text:focus-within {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .ui-rich-text-body .tiptap {
@@ -1032,6 +1046,9 @@ a {
   grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
   gap: 0.5rem;
   max-width: 320px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
 }
 
 .skill-icon-picker__tile {

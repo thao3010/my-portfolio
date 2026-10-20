@@ -11,7 +11,9 @@ export type ExperienceItem = {
 export type ProjectItem = {
   id: string;
   title: string;
+  period: string;
   description: string;
+  content: string;
   url?: string;
   tech: string[];
   createdAt: string;
