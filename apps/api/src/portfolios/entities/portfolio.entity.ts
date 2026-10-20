@@ -2,6 +2,7 @@ import type {
   PortfolioContact,
   PortfolioExperience,
   PortfolioProject,
+  PortfolioPublicUi,
   SurfaceLayout,
 } from '@portfolio/shared';
 import { createEmptySurfaceLayout } from '@portfolio/shared';
@@ -65,6 +66,9 @@ export class Portfolio {
     default: createEmptySurfaceLayout(),
   })
   cvLayout!: SurfaceLayout;
+
+  @Column({ name: 'public_ui', type: 'jsonb', default: {} })
+  publicUi!: PortfolioPublicUi;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;

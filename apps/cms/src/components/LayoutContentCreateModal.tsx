@@ -34,6 +34,7 @@ import {
   SkillContentFields,
 } from './content-forms';
 import { ContentFormModal } from './ContentFormModal';
+import { notify } from '../lib/notify';
 import { Form } from './form';
 
 type CreatedItem =
@@ -117,7 +118,6 @@ function LayoutSectionCreateForm({
   onClose: () => void;
   onCreated: (sectionId: PortfolioSectionId, item: CreatedItem) => void;
 }) {
-  const [apiError, setApiError] = useState<string | null>(null);
   const [skillPresets, setSkillPresets] = useState<SkillIconPreset[]>([]);
 
   const experienceForm = useForm<ExperienceFormValues>({
@@ -160,7 +160,6 @@ function LayoutSectionCreateForm({
   }, [sectionId]);
 
   useEffect(() => {
-    setApiError(null);
     experienceForm.reset(experienceFormDefaults);
     projectForm.reset(projectFormDefaults);
     contactForm.reset(contactFormDefaults);
@@ -179,11 +178,10 @@ function LayoutSectionCreateForm({
   async function submitExperience(values: ExperienceFormValues) {
     const tokens = loadTokens();
     if (!tokens) {
-      setApiError('Not signed in');
+      notify.error('Not signed in');
       return;
     }
     setSaving(true);
-    setApiError(null);
     try {
       const created = await api.createExperience(tokens.accessToken, {
         company: values.company.trim(),
@@ -194,7 +192,7 @@ function LayoutSectionCreateForm({
       onCreated('experience', created);
       onClose();
     } catch (err) {
-      setApiError(err instanceof Error ? err.message : 'Save failed');
+      notify.error(err instanceof Error ? err.message : 'Save failed');
     } finally {
       setSaving(false);
     }
@@ -203,11 +201,10 @@ function LayoutSectionCreateForm({
   async function submitProject(values: ProjectFormValues) {
     const tokens = loadTokens();
     if (!tokens) {
-      setApiError('Not signed in');
+      notify.error('Not signed in');
       return;
     }
     setSaving(true);
-    setApiError(null);
     try {
       const created = await api.createProject(
         tokens.accessToken,
@@ -216,7 +213,7 @@ function LayoutSectionCreateForm({
       onCreated('projects', created);
       onClose();
     } catch (err) {
-      setApiError(err instanceof Error ? err.message : 'Save failed');
+      notify.error(err instanceof Error ? err.message : 'Save failed');
     } finally {
       setSaving(false);
     }
@@ -225,11 +222,10 @@ function LayoutSectionCreateForm({
   async function submitContact(values: ContactFormValues) {
     const tokens = loadTokens();
     if (!tokens) {
-      setApiError('Not signed in');
+      notify.error('Not signed in');
       return;
     }
     setSaving(true);
-    setApiError(null);
     try {
       const created = await api.createContact(
         tokens.accessToken,
@@ -238,7 +234,7 @@ function LayoutSectionCreateForm({
       onCreated('contact', created);
       onClose();
     } catch (err) {
-      setApiError(err instanceof Error ? err.message : 'Save failed');
+      notify.error(err instanceof Error ? err.message : 'Save failed');
     } finally {
       setSaving(false);
     }
@@ -247,11 +243,10 @@ function LayoutSectionCreateForm({
   async function submitSkill(values: SkillFormValues) {
     const tokens = loadTokens();
     if (!tokens) {
-      setApiError('Not signed in');
+      notify.error('Not signed in');
       return;
     }
     setSaving(true);
-    setApiError(null);
     try {
       const created = await api.createSkill(tokens.accessToken, {
         title: values.title.trim(),
@@ -261,60 +256,40 @@ function LayoutSectionCreateForm({
       onCreated('skills', created);
       onClose();
     } catch (err) {
-      setApiError(err instanceof Error ? err.message : 'Save failed');
+      notify.error(err instanceof Error ? err.message : 'Save failed');
     } finally {
       setSaving(false);
     }
   }
 
-  const errorBanner = apiError ? (
-    <div className="alert-error content-modal-error">{apiError}</div>
-  ) : null;
-
   switch (sectionId) {
     case 'experience':
       return (
-        <>
-          {errorBanner}
-          <Form
-            form={experienceForm}
-            id={formId}
-            onSubmit={submitExperience}
-          >
-            <ExperienceContentFields />
-          </Form>
-        </>
+        <Form form={experienceForm} id={formId} onSubmit={submitExperience}>
+          <ExperienceContentFields />
+        </Form>
       );
     case 'projects':
       return (
-        <>
-          {errorBanner}
-          <Form form={projectForm} id={formId} onSubmit={submitProject}>
-            <ProjectContentFields />
-          </Form>
-        </>
+        <Form form={projectForm} id={formId} onSubmit={submitProject}>
+          <ProjectContentFields />
+        </Form>
       );
     case 'contact':
       return (
-        <>
-          {errorBanner}
-          <Form form={contactForm} id={formId} onSubmit={submitContact}>
-            <ContactContentFields />
-          </Form>
-        </>
+        <Form form={contactForm} id={formId} onSubmit={submitContact}>
+          <ContactContentFields />
+        </Form>
       );
     case 'skills':
       return (
-        <>
-          {errorBanner}
-          <Form form={skillForm} id={formId} onSubmit={submitSkill}>
-            <SkillContentFields
-              presets={skillPresets}
-              onUpload={uploadSkillIcon}
-              saving={saving}
-            />
-          </Form>
-        </>
+        <Form form={skillForm} id={formId} onSubmit={submitSkill}>
+          <SkillContentFields
+            presets={skillPresets}
+            onUpload={uploadSkillIcon}
+            saving={saving}
+          />
+        </Form>
       );
     default:
       return null;

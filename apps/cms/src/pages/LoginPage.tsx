@@ -8,12 +8,11 @@ import { Form, RhfInput } from '../components/form';
 import { Button } from '../components/ui/Button';
 import { fadeUp } from '../motion/presets';
 import { loginSchema, type LoginFormValues } from '../schemas/auth.schema';
-import { useState } from 'react';
+import { notify } from '../lib/notify';
 
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -23,12 +22,11 @@ export function LoginPage() {
   const submitting = form.formState.isSubmitting;
 
   async function onSubmit(values: LoginFormValues) {
-    setError(null);
     try {
       await login(values.email, values.password);
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      notify.error(err instanceof Error ? err.message : 'Login failed');
     }
   }
 
@@ -37,7 +35,6 @@ export function LoginPage() {
       mode="login"
       title="Sign in"
       subtitle="Manage your portfolio in the CMS."
-      error={error}
       footer={
         <>
           No account?{' '}

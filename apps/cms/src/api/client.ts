@@ -331,7 +331,9 @@ export async function createProject(
   accessToken: string,
   body: {
     title: string;
+    period?: string;
     description?: string;
+    content?: string;
     url?: string;
     tech?: string[];
   },
@@ -348,7 +350,9 @@ export async function updateProject(
   id: string,
   body: Partial<{
     title: string;
+    period: string;
     description: string;
+    content: string;
     url: string;
     tech: string[];
   }>,

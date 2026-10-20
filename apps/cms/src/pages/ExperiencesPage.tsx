@@ -12,6 +12,7 @@ import { ContentSectionNav } from '../components/ContentSectionNav';
 import { Form } from '../components/form';
 import { LoadingPulse } from '../components/LoadingPulse';
 import { Button } from '../components/ui/Button';
+import { notify } from '../lib/notify';
 import {
   experienceFormDefaults,
   experienceFormSchema,
@@ -25,9 +26,6 @@ export function ExperiencesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-
   const form = useForm<ExperienceFormValues>({
     resolver: zodResolver(experienceFormSchema),
     defaultValues: experienceFormDefaults,
@@ -44,7 +42,7 @@ export function ExperiencesPage() {
     try {
       setItems(await api.fetchMyExperiences(tokens.accessToken));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load');
+      notify.error(err instanceof Error ? err.message : 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -95,8 +93,6 @@ export function ExperiencesPage() {
       return;
     }
     setSaving(true);
-    setError(null);
-    setMessage(null);
     try {
       const payload = {
         company: values.company.trim(),
@@ -113,15 +109,15 @@ export function ExperiencesPage() {
         setItems((list) =>
           list.map((row) => (row.id === updated.id ? updated : row)),
         );
-        setMessage('Experience updated');
+        notify.success('Experience updated');
       } else {
         const created = await api.createExperience(tokens.accessToken, payload);
         setItems((list) => [...list, created]);
-        setMessage('Experience added');
+        notify.success('Experience added');
       }
       closeModal();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Save failed');
+      notify.error(err instanceof Error ? err.message : 'Save failed');
     } finally {
       setSaving(false);
     }
@@ -138,9 +134,9 @@ export function ExperiencesPage() {
       if (editingId === id) {
         closeModal();
       }
-      setMessage('Experience deleted');
+      notify.success('Experience deleted');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Delete failed');
+      notify.error(err instanceof Error ? err.message : 'Delete failed');
     }
   }
 
@@ -159,9 +155,6 @@ export function ExperiencesPage() {
         <p>Add work history, then choose what to show under Portfolio → Display.</p>
       </header>
       <ContentSectionNav />
-      {error ? <div className="alert-error">{error}</div> : null}
-      {message ? <div className="alert-success">{message}</div> : null}
-
       <section className="content-page">
         <div className="content-list-header">
           <h2>All ({items.length})</h2>

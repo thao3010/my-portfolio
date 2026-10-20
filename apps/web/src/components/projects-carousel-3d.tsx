@@ -17,6 +17,19 @@ type ProjectsCarousel3DProps = {
   items: PortfolioProject[];
 };
 
+function stripHtml(value: string): string {
+  return value
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 const SPIN_SPRING = {
   type: 'spring' as const,
   stiffness: 34,
@@ -98,7 +111,6 @@ function CarouselCard({
   });
   const zIndex = useTransform(offset, (current) => Math.round(20 - Math.abs(current) * 8));
   const focus = useTransform(offset, (current) => 1 - Math.min(Math.abs(current) / 0.48, 1));
-  const linkPointer = useTransform(focus, (value) => (value > 0.85 ? 'auto' : 'none'));
 
   return (
     <motion.article
@@ -126,9 +138,17 @@ function CarouselCard({
       onClick={() => onSelect(virtualIndex)}
     >
       <h3>{item.title}</h3>
-      <RichHtml html={item.description} />
-      {item.url ? (
+      {item.period ? (
+        <p className="project-card-period">{item.period}</p>
+      ) : null}
+      {item.description ? (
+        <p className="project-card-summary" title={item.description}>
+          {item.description}
+        </p>
+      ) : null}
+      {/* {item.url ? (
         <motion.a
+          className="project-card-link"
           href={item.url}
           target="_blank"
           rel="noreferrer"
@@ -137,7 +157,7 @@ function CarouselCard({
         >
           Visit project
         </motion.a>
-      ) : null}
+      ) : null} */}
       <div className="tech-row">
         {item.tech.map((tech) => (
           <span key={tech} className="tech-pill">{tech}</span>
@@ -419,7 +439,14 @@ function ProjectDetailDialog({
         </button>
         <p className="eyebrow">Project</p>
         <h3 id={titleId}>{project.title}</h3>
-        <RichHtml html={project.description} />
+        {project.period ? (
+          <p className="project-card-period">{project.period}</p>
+        ) : null}
+        {project.description &&
+        project.description.trim() !== stripHtml(project.content ?? '') ? (
+          <p className="project-dialog-summary">{project.description}</p>
+        ) : null}
+        <RichHtml html={project.content || project.description} />
         {project.tech.length ? (
           <div className="tech-row">
             {project.tech.map((tech) => (
@@ -429,7 +456,7 @@ function ProjectDetailDialog({
         ) : null}
         {project.url ? (
           <a
-            className="btn btn-primary"
+            className="btn btn-primary btn-small"
             href={project.url}
             target="_blank"
             rel="noreferrer"

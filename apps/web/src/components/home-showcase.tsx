@@ -16,7 +16,7 @@ const FEATURES = [
   },
   {
     title: 'CMS → Public sync',
-    body: 'Edit work, experience, and contact once; publish to a locale-aware public route.',
+    body: 'Edit work, experience, and contact once; publish to your public /username route.',
     tag: 'Full stack',
   },
   {

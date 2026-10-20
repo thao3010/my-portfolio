@@ -33,11 +33,11 @@ import { UsersModule } from './users/users.module';
         username: config.get<string>('database.username'),
         password: config.get<string>('database.password'),
         database: config.get<string>('database.name'),
-  ssl: config.get<boolean>('database.ssl')
-    ? {
-        rejectUnauthorized: false,
-      }
-    : false,
+        ssl: config.get<boolean>('database.ssl')
+          ? {
+              rejectUnauthorized: false,
+            }
+          : false,
         entities: [User, Portfolio, Skill, Experience, Project, ContactProfile],
         synchronize: false,
       }),

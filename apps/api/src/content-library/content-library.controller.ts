@@ -21,10 +21,7 @@ import type { JwtPayload } from '../auth/types/jwt-payload';
 import { BEARER_SCHEME } from '../setup-swagger';
 import { ContentLibraryService } from './content-library.service';
 import { CreateContactDto, UpdateContactDto } from './dto/contact.dto';
-import {
-  CreateExperienceDto,
-  UpdateExperienceDto,
-} from './dto/experience.dto';
+import { CreateExperienceDto, UpdateExperienceDto } from './dto/experience.dto';
 import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
 
 @ApiTags('Content library')

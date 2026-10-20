@@ -1,4 +1,7 @@
-import { SKILL_ICON_PRESETS } from '@portfolio/shared';
+import {
+  resolveSkillIconPresetUrl,
+  SKILL_ICON_PRESETS,
+} from '@portfolio/shared';
 import {
   BadRequestException,
   Body,
@@ -58,7 +61,12 @@ export class SkillsController {
   @Get('icon-presets')
   @ApiOperation({ summary: 'Built-in skill icon library' })
   listIconPresets() {
-    return SKILL_ICON_PRESETS;
+    const publicBase =
+      this.config.get<string>('publicBaseUrl') ?? 'http://localhost:3847';
+    return SKILL_ICON_PRESETS.map((preset) => ({
+      ...preset,
+      iconUrl: resolveSkillIconPresetUrl(preset.iconUrl, publicBase),
+    }));
   }
 
   @Post()
@@ -130,9 +138,9 @@ export class SkillsController {
       },
     }),
   )
-  uploadIcon(
-    @UploadedFile() file: Express.Multer.File | undefined,
-  ): { url: string } {
+  uploadIcon(@UploadedFile() file: Express.Multer.File | undefined): {
+    url: string;
+  } {
     if (!file) {
       throw new BadRequestException('File is required');
     }

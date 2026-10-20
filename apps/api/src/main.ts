@@ -10,10 +10,19 @@ import { setupSwagger } from './setup-swagger';
 async function bootstrap() {
   const uploadDir = join(process.cwd(), 'uploads', 'skill-icons');
   mkdirSync(uploadDir, { recursive: true });
+  const builtinSkillIconsDir = join(
+    process.cwd(),
+    'assets',
+    'builtin-skill-icons',
+  );
+  mkdirSync(builtinSkillIconsDir, { recursive: true });
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useStaticAssets(uploadDir, {
     prefix: '/api/v1/uploads/skill-icons/',
+  });
+  app.useStaticAssets(builtinSkillIconsDir, {
+    prefix: '/api/v1/builtin-skill-icons/',
   });
   app.setGlobalPrefix('api/v1');
   setupSwagger(app);

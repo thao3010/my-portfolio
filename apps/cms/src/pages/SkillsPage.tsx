@@ -12,6 +12,7 @@ import { ContentSectionNav } from '../components/ContentSectionNav';
 import { Form } from '../components/form';
 import { LoadingPulse } from '../components/LoadingPulse';
 import { Button } from '../components/ui/Button';
+import { notify } from '../lib/notify';
 import {
   skillFormDefaults,
   skillFormSchema,
@@ -26,9 +27,6 @@ export function SkillsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-
   const form = useForm<SkillFormValues>({
     resolver: zodResolver(skillFormSchema),
     defaultValues: skillFormDefaults,
@@ -42,7 +40,6 @@ export function SkillsPage() {
       setLoading(false);
       return;
     }
-    setError(null);
     try {
       const [list, iconPresets] = await Promise.all([
         api.fetchMySkills(tokens.accessToken),
@@ -51,7 +48,7 @@ export function SkillsPage() {
       setSkills(list);
       setPresets(iconPresets);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load skills');
+      notify.error(err instanceof Error ? err.message : 'Failed to load skills');
     } finally {
       setLoading(false);
     }
@@ -101,8 +98,6 @@ export function SkillsPage() {
       return;
     }
     setSaving(true);
-    setError(null);
-    setMessage(null);
     try {
       const payload = {
         title: values.title.trim(),
@@ -118,15 +113,15 @@ export function SkillsPage() {
         setSkills((list) =>
           list.map((s) => (s.id === updated.id ? updated : s)),
         );
-        setMessage('Skill updated');
+        notify.success('Skill updated');
       } else {
         const created = await api.createSkill(tokens.accessToken, payload);
         setSkills((list) => [...list, created]);
-        setMessage('Skill added');
+        notify.success('Skill added');
       }
       closeModal();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Save failed');
+      notify.error(err instanceof Error ? err.message : 'Save failed');
     } finally {
       setSaving(false);
     }
@@ -137,16 +132,15 @@ export function SkillsPage() {
     if (!tokens || !window.confirm('Delete this skill?')) {
       return;
     }
-    setError(null);
     try {
       await api.deleteSkill(tokens.accessToken, id);
       setSkills((list) => list.filter((s) => s.id !== id));
       if (editingId === id) {
         closeModal();
       }
-      setMessage('Skill deleted');
+      notify.success('Skill deleted');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Delete failed');
+      notify.error(err instanceof Error ? err.message : 'Delete failed');
     }
   }
 
@@ -174,9 +168,6 @@ export function SkillsPage() {
         <p>Add skills with icon, title, and description for your portfolio.</p>
       </header>
       <ContentSectionNav />
-      {error ? <div className="alert-error">{error}</div> : null}
-      {message ? <div className="alert-success">{message}</div> : null}
-
       <section className="content-page">
         <div className="content-list-header">
           <h2>All ({skills.length})</h2>

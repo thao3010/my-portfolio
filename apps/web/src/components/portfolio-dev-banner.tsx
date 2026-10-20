@@ -1,5 +1,14 @@
 'use client';
 
+import type { PortfolioPublicUi } from '@portfolio/shared';
+import {
+  LIFECYCLE_PHASE_IDS,
+  lifecyclePhasesWithIds,
+  WEB_LIFECYCLE_PANEL_UI,
+  WEB_SIMPLE_LIFECYCLE_DIAGRAM_UI,
+  type LifecyclePanelUi,
+  type LifecyclePhaseId,
+} from '../lib/react-lifecycle-ui';
 import { useEffect, useLayoutEffect, useReducer, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { fadeUpBlur, staggerContainer } from '../lib/motion-presets';
@@ -11,74 +20,26 @@ import {
 
 const REACT_CYAN = '#61dafb';
 
-/** Modern function-component lifecycle (React 18/19 mental model). */
-const LIFECYCLE_PHASES = [
-  {
-    id: 'render',
-    title: 'Render',
-    detail: 'Component function runs · JSX → React elements',
-    code: 'return <Banner />',
-  },
-  {
-    id: 'reconcile',
-    title: 'Reconcile',
-    detail: 'Fiber diff · schedule updates',
-    code: 'beginWork() → completeWork()',
-  },
-  {
-    id: 'commit',
-    title: 'Commit',
-    detail: 'Apply DOM mutations',
-    code: 'commitMutationEffects()',
-  },
-  {
-    id: 'layout',
-    title: 'useLayoutEffect',
-    detail: 'Sync after DOM, before paint',
-    code: 'useLayoutEffect(fn, deps)',
-  },
-  {
-    id: 'paint',
-    title: 'Paint',
-    detail: 'Browser compositor',
-    code: 'requestAnimationFrame',
-  },
-  {
-    id: 'effect',
-    title: 'useEffect',
-    detail: 'Subscriptions · fetch · timers',
-    code: 'useEffect(fn, deps)',
-  },
-  {
-    id: 'update',
-    title: 'Update',
-    detail: 'setState / dispatch → re-render',
-    code: 'dispatch({ type: "tick" })',
-  },
-  {
-    id: 'cleanup',
-    title: 'Cleanup',
-    detail: 'Effect teardown · unmount',
-    code: 'return () => cleanup()',
-  },
-] as const;
-
-type PhaseId = (typeof LIFECYCLE_PHASES)[number]['id'];
-
 function lifecycleReducer(
-  state: { count: number; phase: PhaseId },
+  state: { count: number; phase: LifecyclePhaseId },
   action: { type: 'advance' },
 ) {
   if (action.type !== 'advance') {
     return state;
   }
-  const idx = LIFECYCLE_PHASES.findIndex((p) => p.id === state.phase);
-  const next = LIFECYCLE_PHASES[(idx + 1) % LIFECYCLE_PHASES.length];
-  const bumped = next.id === 'update' ? state.count + 1 : state.count;
-  return { count: bumped, phase: next.id };
+  const idx = LIFECYCLE_PHASE_IDS.findIndex((p) => p === state.phase);
+  const nextId = LIFECYCLE_PHASE_IDS[(idx + 1) % LIFECYCLE_PHASE_IDS.length];
+  const bumped = nextId === 'update' ? state.count + 1 : state.count;
+  return { count: bumped, phase: nextId };
 }
 
-function LifecycleDemoChip({ renderCount }: { renderCount: number }) {
+function LifecycleDemoChip({
+  renderCount,
+  panel,
+}: {
+  renderCount: number;
+  panel: LifecyclePanelUi;
+}) {
   const [layoutRan, setLayoutRan] = useState(false);
   const [effectRan, setEffectRan] = useState(false);
 
@@ -105,42 +66,47 @@ function LifecycleDemoChip({ renderCount }: { renderCount: number }) {
       exit={{ opacity: 0, scale: 0.5, filter: 'blur(6px)' }}
       transition={{ type: 'spring', stiffness: 420, damping: 26 }}
     >
-      <span className="lifecycle-demo-chip-label">&lt;Hero /&gt;</span>
-      <span className="lifecycle-demo-chip-meta">render #{renderCount}</span>
+      <span className="lifecycle-demo-chip-label">{panel.demoComponentLabel}</span>
+      <span className="lifecycle-demo-chip-meta">
+        {panel.demoRenderPrefix}
+        {renderCount}
+      </span>
       <span
         className="lifecycle-demo-flag"
         data-on={layoutRan ? 'true' : 'false'}
       >
-        layout
+        {panel.demoLayoutFlag}
       </span>
       <span
         className="lifecycle-demo-flag"
         data-on={effectRan ? 'true' : 'false'}
       >
-        effect
+        {panel.demoEffectFlag}
       </span>
     </motion.div>
   );
 }
 
 export type PortfolioDevBannerProps = {
-  locale: string;
   username: string;
   displayName: string;
   headline: string;
   summary: string;
   cvDownloadUrl?: string;
+  publicUi: PortfolioPublicUi;
 };
 
 export function PortfolioDevBanner({
-  locale,
   username,
   displayName,
   headline,
   summary,
   cvDownloadUrl,
+  publicUi,
 }: PortfolioDevBannerProps) {
   const name = displayName || username;
+  const panel = WEB_LIFECYCLE_PANEL_UI;
+  const lifecyclePhases = lifecyclePhasesWithIds(panel);
   const [{ phase, count }, dispatch] = useReducer(lifecycleReducer, {
     count: 1,
     phase: 'render',
@@ -174,8 +140,8 @@ export function PortfolioDevBanner({
     return () => window.clearTimeout(id);
   }, [phase, reduceMotion]);
 
-  const activeIndex = LIFECYCLE_PHASES.findIndex((p) => p.id === phase);
-  const active = LIFECYCLE_PHASES[activeIndex] ?? LIFECYCLE_PHASES[0];
+  const activeIndex = lifecyclePhases.findIndex((p) => p.id === phase);
+  const active = lifecyclePhases[activeIndex] ?? lifecyclePhases[0];
 
   return (
     <motion.section
@@ -188,12 +154,14 @@ export function PortfolioDevBanner({
       <div className="portfolio-dev-banner-grid">
         <div className="portfolio-dev-banner-copy">
           <motion.div className="portfolio-dev-banner-badges" variants={fadeUpBlur}>
-            <span className="portfolio-dev-badge portfolio-dev-badge-react">
-              <ReactAtomIcon />
-              Frontend · React
-            </span>
+            {publicUi.badgeLabel ? (
+              <span className="portfolio-dev-badge portfolio-dev-badge-react">
+                <ReactAtomIcon />
+                {publicUi.badgeLabel}
+              </span>
+            ) : null}
             <span className="portfolio-dev-badge portfolio-dev-badge-route">
-              /{locale}/{username}
+              /{username}
             </span>
           </motion.div>
 
@@ -218,110 +186,118 @@ export function PortfolioDevBanner({
                 href={cvDownloadUrl}
                 download="cv.pdf"
               >
-                Download CV (PDF)
+                {publicUi.cvDownloadLabel}
               </a>
             </motion.div>
           ) : null}
         </div>
 
         <motion.div
-          className="react-lifecycle-panel"
-          variants={fadeUpBlur}
-          aria-live="polite"
-          aria-atomic="true"
-        >
-          <div className="react-lifecycle-panel-header">
-            <span className="react-lifecycle-dots" aria-hidden>
-              <span />
-              <span />
-              <span />
-            </span>
-            <span className="react-lifecycle-panel-title">
-              react-lifecycle.flow
-            </span>
-            <span className="react-lifecycle-panel-pill">React 19</span>
-          </div>
-
-          <div className="react-lifecycle-body">
-            <ol className="react-lifecycle-steps">
-              {LIFECYCLE_PHASES.map((step, i) => {
-                const isActive = step.id === phase;
-                const isPast = i < activeIndex;
-                return (
-                  <li
-                    key={step.id}
-                    className="react-lifecycle-step"
-                    data-active={isActive ? 'true' : 'false'}
-                    data-past={isPast ? 'true' : 'false'}
-                  >
-                    <span className="react-lifecycle-step-rail" aria-hidden>
-                      <motion.span
-                        className="react-lifecycle-step-pulse"
-                        animate={
-                          isActive && !reduceMotion
-                            ? { scale: [1, 1.35, 1], opacity: [0.5, 1, 0.5] }
-                            : { scale: 1, opacity: isPast ? 0.35 : 0.15 }
-                        }
-                        transition={{
-                          duration: 1.2,
-                          repeat: isActive ? Infinity : 0,
-                          ease: 'easeInOut',
-                        }}
-                      />
-                    </span>
-                    <div className="react-lifecycle-step-content">
-                      <span className="react-lifecycle-step-title">
-                        {step.title}
-                      </span>
-                      <span className="react-lifecycle-step-detail">
-                        {step.detail}
-                      </span>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-
-            <div className="react-lifecycle-stage">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={active.id}
-                  className="react-lifecycle-code"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <span className="react-lifecycle-code-comment">// phase</span>
-                  <code>{active.code}</code>
-                </motion.div>
-              </AnimatePresence>
-
-              <div className="react-lifecycle-demo-mount" aria-hidden>
-                <AnimatePresence mode="wait">
-                  {demoMounted ? (
-                    <LifecycleDemoChip key="hero-chip" renderCount={count} />
-                  ) : null}
-                </AnimatePresence>
-              </div>
-
-              {!reduceMotion ? (
-                <motion.div
-                  className="react-lifecycle-fiber-ring"
-                  animate={{ rotate: 360 }}
-                  transition={{
-                    duration: 18,
-                    repeat: Infinity,
-                    ease: 'linear',
-                  }}
-                  aria-hidden
-                >
-                  <span style={{ color: REACT_CYAN }} />
-                </motion.div>
-              ) : null}
+            className="react-lifecycle-panel"
+            variants={fadeUpBlur}
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <div className="react-lifecycle-panel-header">
+              <span className="react-lifecycle-dots" aria-hidden>
+                <span />
+                <span />
+                <span />
+              </span>
+              <span className="react-lifecycle-panel-title">
+                {panel.panelTitle}
+              </span>
+              <span className="react-lifecycle-panel-pill">
+                {panel.versionPill}
+              </span>
             </div>
-          </div>
-        </motion.div>
+
+            <div className="react-lifecycle-body">
+              <ol className="react-lifecycle-steps">
+                {lifecyclePhases.map((step, i) => {
+                  const isActive = step.id === phase;
+                  const isPast = i < activeIndex;
+                  return (
+                    <li
+                      key={step.id}
+                      className="react-lifecycle-step"
+                      data-active={isActive ? 'true' : 'false'}
+                      data-past={isPast ? 'true' : 'false'}
+                    >
+                      <span className="react-lifecycle-step-rail" aria-hidden>
+                        <motion.span
+                          className="react-lifecycle-step-pulse"
+                          animate={
+                            isActive && !reduceMotion
+                              ? { scale: [1, 1.35, 1], opacity: [0.5, 1, 0.5] }
+                              : { scale: 1, opacity: isPast ? 0.35 : 0.15 }
+                          }
+                          transition={{
+                            duration: 1.2,
+                            repeat: isActive ? Infinity : 0,
+                            ease: 'easeInOut',
+                          }}
+                        />
+                      </span>
+                      <div className="react-lifecycle-step-content">
+                        <span className="react-lifecycle-step-title">
+                          {step.title}
+                        </span>
+                        <span className="react-lifecycle-step-detail">
+                          {step.detail}
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+
+              <div className="react-lifecycle-stage">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={active.id}
+                    className="react-lifecycle-code"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    <span className="react-lifecycle-code-comment">
+                      {panel.codePhaseComment}
+                    </span>
+                    <code>{active.code}</code>
+                  </motion.div>
+                </AnimatePresence>
+
+                <div className="react-lifecycle-demo-mount" aria-hidden>
+                  <AnimatePresence mode="wait">
+                    {demoMounted ? (
+                      <LifecycleDemoChip
+                        key="hero-chip"
+                        renderCount={count}
+                        panel={panel}
+                      />
+                    ) : null}
+                  </AnimatePresence>
+                </div>
+
+                {!reduceMotion ? (
+                  <motion.div
+                    className="react-lifecycle-fiber-ring"
+                    animate={{ rotate: 360 }}
+                    transition={{
+                      duration: 18,
+                      repeat: Infinity,
+                      ease: 'linear',
+                    }}
+                    aria-hidden
+                  >
+                    <span style={{ color: REACT_CYAN }} />
+                  </motion.div>
+                ) : null}
+              </div>
+            </div>
+          </motion.div>
       </div>
 
       <motion.div
@@ -331,6 +307,7 @@ export function PortfolioDevBanner({
         <ReactLifecycleSimpleDiagram
           activeStep={mapPhaseToSimpleStep(phase)}
           reduceMotion={reduceMotion}
+          copy={WEB_SIMPLE_LIFECYCLE_DIAGRAM_UI}
         />
       </motion.div>
     </motion.section>

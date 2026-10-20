@@ -1,8 +1,10 @@
+import { normalizeSkillIconUrl } from '@portfolio/shared';
 import {
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateSkillDto } from './dto/create-skill.dto';
@@ -14,7 +16,14 @@ export class SkillsService {
   constructor(
     @InjectRepository(Skill)
     private readonly skillsRepo: Repository<Skill>,
+    private readonly config: ConfigService,
   ) {}
+
+  normalizeIcon(icon: string): string {
+    const publicBase =
+      this.config.get<string>('publicBaseUrl') ?? 'http://localhost:3847';
+    return normalizeSkillIconUrl(icon, publicBase);
+  }
 
   async listForUser(userId: string): Promise<Skill[]> {
     return this.skillsRepo.find({
@@ -59,7 +68,7 @@ export class SkillsService {
   toResponse(skill: Skill) {
     return {
       id: skill.id,
-      icon: skill.icon,
+      icon: this.normalizeIcon(skill.icon),
       title: skill.title,
       description: skill.description,
       createdAt: skill.createdAt.toISOString(),

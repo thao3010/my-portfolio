@@ -1,5 +1,7 @@
 import {
+  normalizePortfolioPublicUi,
   normalizeSectionOrder,
+  type PortfolioPublicUi,
   type PortfolioSkill,
 } from '@portfolio/shared';
 import type { PublicPortfolioData } from '../components/public-portfolio-view';
@@ -40,7 +42,6 @@ function normalizeSkills(raw: unknown): PortfolioSkill[] {
 
 export function normalizePublicPortfolio(
   raw: Record<string, unknown>,
-  locale: string,
 ): PublicPortfolioData {
   const contact =
     raw.contact && typeof raw.contact === 'object'
@@ -48,10 +49,11 @@ export function normalizePublicPortfolio(
       : {};
 
   const username = String(raw.username ?? '');
+  const publicUi: PortfolioPublicUi = normalizePortfolioPublicUi(raw.publicUi);
 
   return {
     username,
-    locale,
+    publicUi,
     displayName: String(raw.displayName ?? ''),
     headline: String(raw.headline ?? ''),
     summary: String(raw.summary ?? ''),

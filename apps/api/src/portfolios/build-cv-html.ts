@@ -10,7 +10,29 @@ function escapeHtml(value: string): string {
 }
 
 function stripHtml(html: string): string {
-  return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  return html
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function projectBody(proj: { description: string; content: string }): string {
+  const summary = proj.description.trim();
+  const body = proj.content.trim();
+  const summaryHtml =
+    summary && stripHtml(body) !== summary
+      ? `<p>${escapeHtml(summary)}</p>`
+      : '';
+  if (body) {
+    return `${summaryHtml}<div class="rich">${body}</div>`;
+  }
+  return summary ? `<p>${escapeHtml(summary)}</p>` : '';
 }
 
 function contactSection(content: PortfolioContent): string {
@@ -53,8 +75,9 @@ function projectsSection(content: PortfolioContent): string {
       (proj) => `
       <article class="block">
         <h3>${escapeHtml(proj.title)}</h3>
+        ${proj.period ? `<p class="meta">${escapeHtml(proj.period)}</p>` : ''}
         ${proj.url ? `<p class="meta"><a href="${escapeHtml(proj.url)}">${escapeHtml(proj.url)}</a></p>` : ''}
-        <div class="rich">${proj.description}</div>
+        ${projectBody(proj)}
         ${proj.tech.length ? `<p class="meta">${proj.tech.map(escapeHtml).join(' · ')}</p>` : ''}
       </article>`,
     )
